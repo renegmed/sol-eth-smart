@@ -13,6 +13,14 @@ contract MyToken is Owned {
     mapping (address => uint256) public balanceOf;
     mapping (address => mapping (address => uint256)) public allowance;
 
+    bool locked;
+    modifier noReentrancy() {
+        require(!locked, "Item is locked");
+        locked = true;
+        _;
+        locked = false;
+    }
+
     // This generates a public event on the blockchain that will notify clients
     event Transfer(address indexed from, address indexed to, uint256 value); // indexed make an item searchable
 
@@ -26,9 +34,10 @@ contract MyToken is Owned {
         name = tokenName;                                       // Set the name for display purposes
         symbol = tokenSymbol;                                   // Set the symbol for display purposes
     }
+ 
 
     /* Internal transfer, only can be called by this contract */
-    function _transfer(address _from, address _to, uint256 _value) internal { 
+    function _transfer(address _from, address _to, uint256 _value) noReentrancy internal { 
         // Prevent transfer to 0x0 address.
         require(_to != 0x0);
         // Check if the sender has enough         
@@ -96,4 +105,6 @@ contract MyToken is Owned {
         emit Transfer(0, owner, mintedAmount);
         emit Transfer(owner, target, mintedAmount);
     }
+
+    function () public payable {}
 } 
