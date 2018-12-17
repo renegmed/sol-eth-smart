@@ -1,58 +1,33 @@
 pragma solidity ^0.4.24;
 
 contract MyToken {
+    // Puble variables of the token
+    string public name;
+    string public symbol;
+    uint8 public decimals = 18; // 18 decimals is the strongly suggested default, avoid changing it
+    uint256 public totalSupply;
+
     // This creates an array with all balances
     mapping (address => uint256) public balanceOf;
 
+    // This generates a public event on the blockchain that will notify clients
+    event Transfer(address indexed from, address indexed to, uint256 value); // indexed make an item searchable
+
     /* Initializes contract with initial supply tokens to the creator of the contract */
-    constructor() public {
-        balanceOf[msg.sender] = 1000000;    // Give the creator all initial tokens
+    constructor(uint256 initialSupply, string tokenName, string tokenSymbol) public {
+        totalSupply = initialSupply * 10 ** uint256(decimals);  // Update total supply with the decimal amount
+        balanceOf[msg.sender] = totalSupply;                    // Give the creator all initial tokens
+        name = tokenName;                                       // Set the name for display purposes
+        symbol = tokenSymbol;                                   // Set the symbol for display purposes
     }
 
     /* Send coins */
-    function transfer(address _to, uint256 _value) public {
-        balanceOf[msg.sender] -= _value;    // Subtract from the sender
-        balanceOf[_to] += _value;           // Add the same to the recipient
+    function transfer(address _to, uint256 _value) public returns (bool success) {
+        require(balanceOf[msg.sender] >= _value, "Not enough sender's balance to transfer"); // Check if the sender has enough
+        require(balanceOf[_to] + _value >= balanceOf[_to], "Causes balance overflow");   // Check for overflows
+        balanceOf[msg.sender] -= _value;                      // Subtract from the sender
+        balanceOf[_to] += _value;                             // Add the same to the recipient
+        emit Transfer(msg.sender, _to, _value);               // emit Event
+        return true;
     }
-}
-
-/*
-
-$ ganache-cli
-
--------------
-
-$ truffle console 
-
-truffle> compile
-truffle> migrate --reset
-
-truffle> var mt = MyToken.at(MyToken.address)
-
-truffle> mt.balanceOf(web3.eth.accounts[0])
-truffle> mt.balanceOf(web3.eth.accounts[1])
-truffle> mt.transfer(web3.eth.accounts[1], 1000)
-truffle> mt.transfer(web3.eth.account[2], 100000000000)
-truffle> mt.balanceOf(web3.eth.accounts[0])
-BigNumber {
-  s: 1,
-  e: 77,
-  c:
-   [ 11579208,
-     92373161954235,
-     70985008687907,
-     85326998466564,
-     5640394574840,
-     7913130638936 ] }
-
-This is a negative overflow, the current balance is less than 0
-
-*/
-
-
-
-
-
-
-
-*/
+} 
