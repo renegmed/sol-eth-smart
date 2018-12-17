@@ -1,7 +1,9 @@
 pragma solidity ^0.4.24;
 
-contract MyToken {
-    // Puble variables of the token
+import "../library/Owned.sol";
+
+contract MyToken is Owned {
+    // Public variables of the token
     string public name;
     string public symbol;
     uint8 public decimals = 18; // 18 decimals is the strongly suggested default, avoid changing it
@@ -68,7 +70,7 @@ contract MyToken {
      *
      */
     function transferFrom(address _from, address _to, uint256 _value) public returns (bool success) {
-        require(_value <= allowance[_from][msg.sender,"Amount request is not covered by remaining allowance");  // Check allowance if requested amount is covered
+        require(_value <= allowance[_from][msg.sender],"Amount request is not covered by remaining allowance");  // Check allowance if requested amount is covered
         allowance[_from][msg.sender] -= _value;   // reduce the allowance
         _transfer(_from, _to, _value);
     }
@@ -88,4 +90,10 @@ contract MyToken {
         return true;
     } 
 
+    function mintToken(address target, uint256 mintedAmount) public onlyOwner {
+        balanceOf[target] += mintedAmount * 10 ** uint256(decimals);
+        totalSupply += mintedAmount * 10 ** uint256(decimals);
+        emit Transfer(0, owner, mintedAmount);
+        emit Transfer(owner, target, mintedAmount);
+    }
 } 
